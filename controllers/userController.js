@@ -1,28 +1,28 @@
 const { User, Thought } = require('../models');
 
 const userController = {
+
     async getUsers(req, res) {
         try {
-            const users = await User.find()
+            const users = await User.find({})
 
             .populate({ path: 'thoughts', select: '-__v' })
-            .populate({ path: 'friends', select: '-__v' });
+            .populate({ path: 'friends', select: '-__v' })
         
-        return res.status(200).json(users);
+            return res.status(200).json(users);
 
         } catch (err) {
             return res.status(500).json(err);
+               
         }
     },
 
     async getUser(req, res) {
         try {
-            const user = await User.findOne(
-                { _id: req.params.userId }
-            )
+            const user = await User.findOne({ _id: req.params.userId })
 
             .populate({ path: 'thoughts', select: '-__v' })
-            .populate({ path: 'friends', select: '-__v' });
+            .populate({ path: 'friends', select: '-__v' })
 
             if (!user) {
                 return res.status(404).json({ message: "No user located with that ID"});
@@ -65,20 +65,15 @@ const userController = {
 
     async deleteUser(req, res) {
         try {
-            const user = await User.findOneAndDelete(
-                { _id: req.params.userId }
-            );
+            const user = await User.findOneAndDelete({ _id: req.params.userId });
 
             if (!user) {
                 return res.status(404).json({ message: "No user located with that ID"});
             }
 
-            await Thought.deleteMany(
-                { _id: { $in: user.thoughts }}
-            );
-            return res.status(200).json({
-                message: "User and their thoughts/reactions are deleted!"
-            });
+            await Thought.deleteMany({ _id: { $in: user.thoughts }});
+
+            return res.status(200).json({message: "User and their thoughts/reactions are deleted!"});
 
         } catch (err) {
             return res.status(500).json(err);
@@ -89,7 +84,7 @@ const userController = {
         try {
             const friend = await User.findOneAndUpdate(
                 { _id: req.params.userId },
-                { $pull: { friends: req.params.friendId } },
+                { $addToSet: { friends: req.params.friendId } },
                 { runValidators: true, new: true }
             );
 
